@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gait DNA Analysis</title>
+</head>
+<header>
+    <h1>Gait DNA Analysis</h1> <!-- h1 is for webpage title -->
+</header>
+<body>
+    <h2>Overview</h2> <!-- h2 is subtitles -->
+        <p>
+            &emsp;    The goal of the Gait DNA analysis project is to determine whether each individual in a video is walking
+            freely, carrying a concealed object, or carrying a heavy object. This is done by first, preprocessing the
+            videos with a pose identification network. Next each person’s torso is transformed upright and stabilized
+            using the key points from the pose network. A new stabilized video is created for each person in a 1:2
+            aspect ratio. All the key points from the network are also transformed. Using the transformed points a
+            basin hopping algorithm is used to find a best fit of the form:
+            <br><br>
+            &emsp; a * sin(b*x + c) + d
+            <br><br>
+            This best fit is found for the shoulders, elbows, hands, knees and feet of each person. The network for
+            identification is currently unfinished, but it will be taking in the amplitudes, period length, vertical
+            offset and average height (pixels) for each person to identify if they are carrying.
+        </p>
+    <h2>Data Pre-Processing</h2>
+        <p>
+            &emsp;    Before the proposed network will be able to identify carry there is some data we must extract, modify,
+            and fit. First it requires a pose identification network to find each person in the video and identify key
+            point coordinates on their body including: head, collar bone, shoulders, elbows, hands, hips, knees, and
+            feet. Currently Open Pose (https://github.com/CMU-Perceptual-Computing-Lab/openpose) is being used to
+            extract this data from videos, giving us a list of people and their key points for each frame. From this
+            list we then use the head, collarbone, and hip key points to align the torso and keep its position as
+            similar as possible from frame to frame. We do this by finding a transform matrix that attempts to transform
+            these points to preset locations every frame, then perform that transform on all of the points and the video.
+            The new video produced for each person is a 1:2 ratio video with the person’s torso remaining still as their
+            arms and legs swing freely(Figure x). Unfortunately this network seems to have trouble keeping consistent
+            the ordering of people it finds from frame to frame, so the transforms are checked from one frame to the next
+            to keep the correct points for each person.
+            <br>
+             &emsp;   Once we have the data points transformed outliers must be removed before we can acquire the final
+            signals. Currently only y-point values are considered. This is because regardless of a walking direction in
+            relation to the camera, an up and down motion can be seen from y-points. Unlike in the x-points, variation
+            can not be see if the walking direction is towards the camera. First any extreme outliers are removed, those
+            outside two one and a half standard deviations of the y-points. Next, we check three consecutive data points
+            to, starting with points one, two and three, sliding over by one until we reach the last three points. A line
+            is made between the first and third points, using y-value and frame number as coordinates, and the orthogonal
+            distance of the second point to the line is checked. Any points found with a large orthogonal distance are
+            removed from the list.
+            <br>
+             &emsp;   The final step is to find a best fit sine wave for the data points. This is done by using a basin hopping
+            algorithm to minimize the residual of a fit line of the form:
+            <br><br>
+             &emsp;   a * sin(b*x + c) + d
+            <br><br>
+            Basin hopping is used, because it was found that simple linear regressions had a lot of trouble with local
+            minimums trying when fitting with a sine function. Once we acquire values for a, b, c, and d they are
+            written to a file to be used for the network’s inputs. The mean height (in pixels) of the person is also
+            written to the file to give context to the amplitude of the wave.
+
+        </p>
+
+</body>
+</html>
