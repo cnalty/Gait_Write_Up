@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Gait DNA Analysis</title>
+    <link href="style.css" rel="stylesheet">
 </head>
 <header>
     <h1>Gait DNA Analysis</h1> <!-- h1 is for webpage title -->
+
 </header>
 <body>
     <h2>Overview</h2> <!-- h2 is subtitles -->
@@ -17,7 +19,7 @@
             aspect ratio. All the key points from the network are also transformed. Using the transformed points a
             basin hopping algorithm is used to find a best fit of the form:
             <br><br>
-            &emsp; a * sin(b*x + c) + d
+            &emsp; a &bull; sin(b &bull; x + c) + d
             <br><br>
             This best fit is found for the shoulders, elbows, hands, knees and feet of each person. The network for
             identification is currently unfinished, but it will be taking in the amplitudes, period length, vertical
@@ -28,7 +30,7 @@
             &emsp;    Before the proposed network will be able to identify carry there is some data we must extract, modify,
             and fit. First it requires a pose identification network to find each person in the video and identify key
             point coordinates on their body including: head, collar bone, shoulders, elbows, hands, hips, knees, and
-            feet. Currently Open Pose (https://github.com/CMU-Perceptual-Computing-Lab/openpose) is being used to
+            feet. Currently <a href="https://github.com/CMU-Perceptual-Computing-Lab/openpose">Open Pose</a>  is being used to
             extract this data from videos, giving us a list of people and their key points for each frame. From this
             list we then use the head, collarbone, and hip key points to align the torso and keep its position as
             similar as possible from frame to frame. We do this by finding a transform matrix that attempts to transform
@@ -51,13 +53,39 @@
              &emsp;   The final step is to find a best fit sine wave for the data points. This is done by using a basin hopping
             algorithm to minimize the residual of a fit line of the form:
             <br><br>
-             &emsp;   a * sin(b*x + c) + d
+             &emsp;   a &bull; sin(b &bull; x + c) + d
             <br><br>
             Basin hopping is used, because it was found that simple linear regressions had a lot of trouble with local
             minimums trying when fitting with a sine function. Once we acquire values for a, b, c, and d they are
             written to a file to be used for the network’s inputs. The mean height (in pixels) of the person is also
             written to the file to give context to the amplitude of the wave.
 
+        </p>
+    <h2>Future Plans</h2>
+        <p>
+           &emsp; Currently a more consistent outlier removal algorithm is being worked on. While the current algorithm used
+            does a fairly good job of removing outliers (see figure x). A few methods are being tried, including:
+        </p>
+            <ol>
+                <li>Tweaking the maximum orthogonal distance requirement for the current method</li>
+                <li>Removing a few of the largest distance point and applying basin hopping multiple times to find a
+                    curve that does not change from removing extra points
+                </li>
+                <li>Varying the acceptable orthogonal distance based on the slope of the line between points one and
+                    three in the current triplet method</li>
+            </ol>
+        <p>
+            &emsp; One of the biggest challenges for the current method is consecutive outliers. When there is only one
+            outlier surrounded by acceptable points, this method works very well, because the distance from the line created by
+            the surrounding points will be very high compared to normally. However when there are multiple outliers in a row
+            they create a line where the first outlier is very close to the line created by the last acceptable point and the
+            next outlier (Figure x). In addition many of the outliers tend to fall on a flat line, meaning three or more in a
+            row will create a scenario with the middle point being seemingly a perfect fit. The three methods listed are hoping
+            to help combat this issue.
+            <br>
+            &emsp; In addition the network used for identification has not been built yet. In the next couple of months
+            the plan is to have the pre-processing completely finished. Once this is finished data labeling and network
+            construction will begin.
         </p>
 
 </body>
